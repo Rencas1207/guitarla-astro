@@ -1,5 +1,22 @@
 ---
+import ComponentReact from '../components/ComponentReact';
+import Curso from '../components/Curso.astro';
+import Guitarra from '../components/Guitarra.astro';
+import Post from '../components/Post.astro';
 import Layout from '../layouts/Layout.astro';
+
+const urlGuitars = `${import.meta.env.PUBLIC_API_URL}/guitarras?populate=image`;
+const urlPosts = `${import.meta.env.PUBLIC_API_URL}/posts?populate=image`;
+const urlCourse = `${import.meta.env.PUBLIC_API_URL}/course?populate=image`;
+
+const [resGuitars, resPosts, restCourse] = await Promise.all([
+  fetch(urlGuitars),
+  fetch(urlPosts),
+  fetch(urlCourse),
+]);
+
+const [{ data: guitars }, { data: posts }, { data: course }] =
+  await Promise.all([resGuitars.json(), resPosts.json(), restCourse.json()]);
 ---
 
 <Layout
@@ -7,8 +24,48 @@ import Layout from '../layouts/Layout.astro';
   description="Página de tienda de instrumentos musicales, guitarras, cursos, blog y más"
 >
   <main class="contenedor">
-    <h1 class="heading">Inicio</h1>
+    <h1 class="heading">Nuestra colección</h1>
+    <div class="grid">
+      {
+        guitars?.map((guitarra) => (
+          <Guitarra
+            name={guitarra.attributes.name}
+            description={guitarra.attributes.description}
+            url={guitarra.attributes.url}
+            price={guitarra.attributes.price}
+            image={
+              guitarra.attributes?.image.data.attributes.formats.medium.url
+            }
+          />
+        ))
+      }
+    </div>
   </main>
+
+  <Curso
+    title={course.attributes.title}
+    content={course.attributes.content}
+    image={course.attributes.image.data.attributes.url}
+  />
+
+  <!-- <ComponentReact client:only /> -->
+
+  <section class="contenedor">
+    <h2 class="heading">Blog</h2>
+    <div class="grid">
+      {
+        posts?.map((post) => (
+          <Post
+            title={post.attributes.title}
+            publishedAt={post.attributes.publishedAt}
+            content={post.attributes.content}
+            image={post.attributes.image.data.attributes.formats.medium.url}
+            url={post.attributes.url}
+          />
+        ))
+      }
+    </div>
+  </section>
 </Layout>
 
 <style></style>
